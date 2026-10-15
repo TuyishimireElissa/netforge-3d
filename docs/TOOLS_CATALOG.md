@@ -1,0 +1,18 @@
+# Tool integration register
+Availability probe 2026-10-15: Python 3.11.2, `ip` (iproute2 family), `ping`, `curl`, `git`, `gh` present; Godot, Docker, containerlab, GNS3, QEMU, tcpdump, Nmap, pytest/FastAPI not found. **No real network tool is integrated, invoked by the application, or range-tested.** `curl` was used solely for project license research against GitHub. Local `tools.console` is our own SIMULATED adapter, not an OS networking tool.
+
+| Integration queue | Source / license status | Installation / security gate / evidence |
+|---|---|---|
+| ping, traceroute/tracert, ip/ipconfig/iproute2, ss/netstat, dig/nslookup, curl, ethtool, iperf3 | host-specific licenses/versions **not assessed** | PLANNED; allowlisted targets, argv adapters, timeouts, output limits, subprocess termination, namespace isolation; no integration evidence |
+| Wireshark, TShark, tcpdump, Scapy | [Wireshark repo](https://github.com/wireshark/wireshark) GPL-2.0 per GitHub license API; others **review before bundling** | PLANNED; capture only disposable lab interfaces, bounded files, label real capture |
+| Nmap / discovery | [Nmap license](https://github.com/nmap/nmap/blob/master/LICENSE) GitHub API reports NOASSERTION; examine special Nmap license before redistribution | PLANNED; explicit approved target allowlist; never automatic external scan |
+| Linux namespace/bridge/nftables/iptables | Linux and tool versions/license per host not verified | PLANNED; privilege mediation, deny egress and teardown verification |
+| Cisco/Arista/Nokia/Linux appliance images; GNS3/containerlab/QEMU/KVM | license/image rights per vendor not verified | PLANNED; never bundle proprietary appliance without permission |
+| Greenbone/OpenVAS, Burp Suite, OWASP ZAP | licenses, versions, OS requirements not reviewed | PLANNED; only within contained target inventory |
+| Suricata, Zeek, Wazuh, Windows Event Logs, Sysmon, auditd, osquery | licenses/versions not reviewed | PLANNED; log normalization and data retention controls |
+| Autopsy, Sleuth Kit, Volatility, YARA | licenses/versions not reviewed | PLANNED; known evidence images, hashing, no host forensics by default |
+| PKI, identity, container/dependency/code/cloud scanners | vendor-specific | PLANNED; least privilege and approved accounts |
+
+Each future tool entry must replace group placeholders with canonical version, official docs/source, license+redistribution review, supported host/guest OS, installation/permissions, argv+input validation, output filtering/limits, cancellation, installed/tested status, displayed result, missions, integration tests and limitations **before enabled**. Licensing spot check via GitHub repository license API on 2026-10-15: [Godot MIT](https://github.com/godotengine/godot/blob/master/LICENSE.txt), [FastAPI MIT](https://github.com/fastapi/fastapi/blob/master/LICENSE), [CPython LICENSE](https://github.com/python/cpython/blob/main/LICENSE) GitHub API `NOASSERTION` (see file terms). SQLite public-domain terms require independent official-site review before packaging; not bundled. Godot executable is not bundled. No third-party Python packages required for first slice.
+
+Development runtime note (2026-10-15): Godot 4.2.2 is an engine dependency, **not** an integrated cyber tool. Local official release download is blocked by the sandbox's release-asset host filter; compatible source was reachable, but `pkg-config`/development headers are absent. CI attempts the [official Godot 4.2.2 release](https://github.com/godotengine/godot-builds/releases/tag/4.2.2-stable) and SHA512 verification. Its actual run status must be checked separately.

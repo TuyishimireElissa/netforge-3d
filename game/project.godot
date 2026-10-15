@@ -1,0 +1,12 @@
+; NetForge 3D — Godot 4.x project, built with primitive meshes
+config_version=5
+
+[application]
+config/name="NetForge 3D — Simulated School Lab"
+run/main_scene="res://school_lab.tscn"
+config/features=PackedStringArray("4.2", "GL Compatibility")
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/default_filters/use_nearest_mipmap_filter=false

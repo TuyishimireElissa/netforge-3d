@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "school-sticky-security",
+  "name": "Configure sticky MAC security",
+  "fidelity": "SIMULATED",
+  "difficulty": "beginner",
+  "prerequisites": [
+    "school-link-repair"
+  ],
+  "objectives": [
+    "Enable port security on Fa0/3",
+    "Learn PC B's source MAC",
+    "Inspect and save configuration"
+  ],
+  "initial_topology": "builtin-school-lab-v1",
+  "starting_problem": "Disconnected PC B; switch security disabled",
+  "available_equipment": [
+    "pc-a",
+    "pc-b",
+    "sw1",
+    "copper-repair-cable",
+    "simulated-switch-cli"
+  ],
+  "authorized_targets": [
+    "pc-a:eth0",
+    "pc-b:eth0",
+    "sw1:fa0/1",
+    "sw1:fa0/3"
+  ],
+  "tasks": [
+    "Connect PC B",
+    "Configure security and sticky learning on Fa0/3",
+    "Ping from PC B to PC A",
+    "Inspect show port-security",
+    "Use end and write memory"
+  ],
+  "hints": [
+    "enable; configure terminal; interface fastethernet 0/3",
+    "switchport port-security before sticky",
+    "Traffic sourced by PC B causes learning"
+  ],
+  "rubric": {
+    "cable_present": 1,
+    "security_and_sticky_mac_learned": 2,
+    "saved_configuration": 1,
+    "successful_ping_evidence": 1
+  },
+  "required_evidence": [
+    "PC B MAC learned by switch port",
+    "Successful simulated ICMP echo",
+    "In-memory switch save"
+  ],
+  "success": "cable_present AND security_and_sticky_mac_learned AND saved_configuration AND successful_ping_evidence",
+  "failure": "Port-security violation blocks traffic until cleared or reset",
+  "recovery": "Reset removes cables, learned addresses, CLI mode and in-memory save",
+  "report": "The /action assess result provides criterion booleans, not a grade",
+  "api_key": "mission_b"
+}

@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "id": "school-link-repair",
+  "name": "Repair the school laboratory link",
+  "fidelity": "SIMULATED",
+  "difficulty": "beginner",
+  "prerequisites": [],
+  "objectives": [
+    "Identify the missing copper link",
+    "Restore same-subnet ICMP connectivity"
+  ],
+  "initial_topology": "builtin-school-lab-v1",
+  "starting_problem": "pc-b:eth0 is disconnected from sw1:fa0/3",
+  "available_equipment": [
+    "pc-a",
+    "pc-b",
+    "sw1",
+    "copper-repair-cable"
+  ],
+  "authorized_targets": [
+    "pc-a:eth0",
+    "pc-b:eth0",
+    "sw1:fa0/1",
+    "sw1:fa0/3"
+  ],
+  "tasks": [
+    "Connect pc-b:eth0 to sw1:fa0/3",
+    "Run simulated ping from PC B to PC A"
+  ],
+  "hints": [
+    "The orange cable is on the desk",
+    "A ping alone cannot fix a disconnected interface"
+  ],
+  "rubric": {
+    "cable_present": 1,
+    "successful_ping_evidence": 1
+  },
+  "required_evidence": [
+    "Successful simulated ICMP echo from PC B to PC A"
+  ],
+  "success": "cable_present AND successful_ping_evidence",
+  "failure": "No permanent failure; retry after diagnosis",
+  "recovery": "Reset restores the disconnected initial topology",
+  "report": "The /action assess result provides criterion booleans, not a grade",
+  "api_key": "mission_a"
+}
