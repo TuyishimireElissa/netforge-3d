@@ -1,6 +1,6 @@
 # NetForge 3D (prototype)
 
-An offline-first **SIMULATED** school networking lab with optional local SQLite persistence. The headless Python simulation models an Ethernet switch, two hosts, a cable repair, same-subnet ARP/ICMP exchange and a limited vendor-inspired switch CLI. A Godot 4 desktop scene provides first-person inspection, virtual cable repair, terminal and mission feedback. **Godot has not been run in this development environment.** No real packet capture, operating-system networking, appliance emulation or isolated attack range is included.
+An offline-first **SIMULATED** school networking lab with optional local SQLite persistence. The headless Python simulation models an Ethernet switch, two hosts, a cable repair, same-subnet ARP/ICMP exchange and a limited vendor-inspired switch CLI. A Godot 4 desktop scene provides first-person inspection, virtual cable repair, terminal and mission feedback. **Godot has not been run inside this sandbox.** Hosted Linux and Windows jobs have run headless engine tests; rendered GUI interaction is still unverified. No real packet capture, operating-system networking, appliance emulation or isolated attack range is included.
 
 ## Quick start
 
@@ -29,4 +29,4 @@ In Godot, import `game/project.godot`, run the project, paste the printed local 
 
 **No live previews:** Godot desktop requires installation on the player's computer. The bridge is a local-only service intentionally bound to loopback.
 
-Verification: `python -m tools.verify --download-godot --require-godot` attempts official Godot 4.2.2 and requires its headless import/startup/mission tests; logs and JSON report are in `artifacts/verification/`. GitHub Actions runs the strict suite on a pinned Windows runner. A passing headless test is not a full graphical usability test.
+Verification: `python -m tools.verify --download-godot --require-godot` attempts official Godot 4.2.2 and requires its headless import/startup/mission tests; logs and JSON report are in `artifacts/verification/`. GitHub Actions runs pinned Windows and Linux jobs. [Run 38756303805](https://github.com/TuyishimireElissa/netforge-3d/actions/runs/38756303805) passed: Linux editor import/startup/integration passed; Windows scene/mission scripting passed but its headless editor import is **BLOCKED** (engine exits 1 without an error). A passing headless test is not full graphical usability proof.

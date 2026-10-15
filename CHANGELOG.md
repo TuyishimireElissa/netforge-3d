@@ -2,7 +2,8 @@
 
 ## Unreleased — verification automation (2026-10-15)
 - Added cross-platform report/log-generating verifier, pinned Godot 4.2.2 download attempt, strict engine gates and Windows GitHub Actions workflow.
-- Authored headless Godot lab mission integration smoke; no local Godot execution was possible yet.
+- Authored headless Godot lab mission integration smoke; hosted run 38756303805 passed Linux import/startup/mission and Windows startup/mission. Windows headless editor import remains explicitly BLOCKED.
+- Fixed cross-platform SQLite test fixture connections, used Godot Windows console binary, preserved collider/state checks under the headless dummy renderer, and retained structured GitHub failure annotations.
 - Rejected duplicate mission JSON fields and added verifier regression tests.
 
 ## Persistence and mission follow-up (2026-10-15)
