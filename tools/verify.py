@@ -170,7 +170,7 @@ class Verifier:
             self.record("godot_integration", "skipped", "Executable did not start")
             return
         prefix = [str(binary.resolve()), "--headless", "--path", str(GAME)]
-        if not self.run("godot_import", prefix + ["--editor", "--import", "--quit"], 180, reject_engine_errors=True):
+        if not self.run("godot_import", prefix + ["--verbose", "--editor", "--import"], 180, reject_engine_errors=True):
             self.record("godot_startup", "skipped", "Project import failed")
             self.record("godot_integration", "skipped", "Project import failed")
             return

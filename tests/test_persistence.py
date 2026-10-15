@@ -1,5 +1,6 @@
 """Actual SQLite file migration/round-trip/rollback; no mock database."""
 import sqlite3
+from contextlib import closing
 import tempfile
 from pathlib import Path
 import unittest
@@ -26,19 +27,19 @@ class PersistenceTests(unittest.TestCase):
         self.assertTrue(store.db.execute("PRAGMA foreign_keys").fetchone()[0])
         self.assertEqual(store.db.execute("PRAGMA foreign_key_check").fetchall(), [])
         store.close()
-        with sqlite3.connect(self.path) as db:
+        with closing(sqlite3.connect(self.path)) as db, db:
             db.execute("PRAGMA user_version=55")
         with self.assertRaisesRegex(PersistenceError, "Unsupported SQLite schema version"):
             SQLiteStore(self.path)
-        with sqlite3.connect(self.path) as db:
+        with closing(sqlite3.connect(self.path)) as db, db:
             self.assertEqual(db.execute("PRAGMA user_version").fetchone()[0], 55)
 
     def test_migration_rollback_on_conflicting_table(self):
-        with sqlite3.connect(self.path) as db:
+        with closing(sqlite3.connect(self.path)) as db, db:
             db.execute("CREATE TABLE links (bad_column TEXT)")
         with self.assertRaises(sqlite3.DatabaseError):
             SQLiteStore(self.path)
-        with sqlite3.connect(self.path) as db:
+        with closing(sqlite3.connect(self.path)) as db, db:
             self.assertEqual(db.execute("PRAGMA user_version").fetchone()[0], 0)
             self.assertEqual(db.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name").fetchall(), [("links",)])
 
