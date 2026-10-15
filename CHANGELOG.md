@@ -4,7 +4,7 @@
 - Added cross-platform report/log-generating verifier, pinned Godot 4.2.2 download attempt, strict engine gates and Windows GitHub Actions workflow.
 - Authored headless Godot lab mission integration smoke; hosted run 38756303805 passed Linux import/startup/mission and Windows startup/mission. Windows headless editor import remains explicitly BLOCKED.
 - Fixed cross-platform SQLite test fixture connections, used Godot Windows console binary, preserved collider/state checks under the headless dummy renderer, and retained structured GitHub failure annotations.
-- Rejected duplicate mission JSON fields and added verifier regression tests.
+- Rejected duplicate mission JSON fields, invalidated stale ping evidence when modeled path changes, and added verifier/mission regression tests.
 
 ## Persistence and mission follow-up (2026-10-15)
 - Bundled versioned mission JSON now validates all fields, restricts criterion IDs and evaluates weighted evidence/prerequisites without expression execution.

@@ -79,6 +79,25 @@ class MissionTests(unittest.TestCase):
         with self.assertRaises(missions.MissionDefinitionError):
             missions.load_missions(self.folder)
 
+    def test_stale_ping_cannot_complete_mission_after_path_changes(self):
+        cases = [
+            lambda lab: setattr(lab.ports["sw1:fa0/3"], "enabled", False),
+            lambda lab: setattr(lab.ports["sw1:fa0/3"], "vlan", 20),
+            lambda lab: setattr(lab.ports["pc-b:eth0"], "address", "10.0.0.2/24"),
+            lambda lab: setattr(lab.ports["pc-b:eth0"], "mac", "02:00:00:00:00:ff"),
+            lambda lab: lab.mac_table.clear(),
+        ]
+        for mutate in cases:
+            with self.subTest(mutation=mutate):
+                lab = Lab()
+                lab.connect("pc-b:eth0", "sw1:fa0/3")
+                self.assertTrue(lab.ping("pc-b:eth0", "pc-a:eth0"))
+                self.assertTrue(lab.assess()["mission_a"]["complete"])
+                mutate(lab)
+                report = lab.assess()["mission_a"]
+                self.assertFalse(report["ping_evidence"])
+                self.assertFalse(report["complete"])
+
     def test_unsaved_or_stale_config_fails(self):
         lab = Lab()
         lab.connect("pc-b:eth0", "sw1:fa0/3")

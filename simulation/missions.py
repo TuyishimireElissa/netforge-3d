@@ -6,6 +6,7 @@ Only registered criterion IDs can execute. A mission cannot extend the program's
 from __future__ import annotations
 
 from dataclasses import dataclass
+import ipaddress
 import json
 from pathlib import Path
 import re
@@ -152,13 +153,32 @@ def load_missions(directory: Path = SCENARIOS) -> tuple[Mission, ...]:
 MISSIONS = load_missions()
 
 
+def _valid_ping_evidence(lab: Lab) -> bool:
+    """A past ping is evidence only while its modeled physical/L2/L3 path remains valid."""
+    if not (lab.last_ping and lab.last_ping_source == "pc-b:eth0" and lab.last_ping_target == "pc-a:eth0"):
+        return False
+    a, b = lab.ports["pc-b:eth0"], lab.ports["pc-a:eth0"]
+    source_link, target_link = lab.link_of(a.id), lab.link_of(b.id)
+    if not source_link or not target_link or source_link.peer(a.id) != "sw1:fa0/3" or target_link.peer(b.id) != "sw1:fa0/1":
+        return False
+    ingress, egress = lab.ports["sw1:fa0/3"], lab.ports["sw1:fa0/1"]
+    if not all(p.up for p in (a, b, ingress, egress)) or ingress.vlan != egress.vlan:
+        return False
+    if lab.mac_table.get((ingress.vlan, a.mac)) != ingress.id or lab.mac_table.get((egress.vlan, b.mac)) != egress.id:
+        return False
+    try:
+        src, dst = ipaddress.IPv4Interface(a.address), ipaddress.IPv4Interface(b.address)
+    except ValueError:
+        return False
+    return src.ip != dst.ip and dst.ip in src.network and src.ip in dst.network
+
+
 def assess(lab: Lab) -> dict:
     """Evaluate observed state, not entered command strings or synthetic score claims."""
     cable = bool(lab.link_of("pc-b:eth0"))
     port = lab.ports["sw1:fa0/3"]
     mac = lab.ports["pc-b:eth0"].mac
-    ping = (lab.last_ping and lab.last_ping_source == "pc-b:eth0" and
-            lab.last_ping_target == "pc-a:eth0" and cable)
+    ping = _valid_ping_evidence(lab)
     sticky = port.security and port.sticky and mac in port.learned and not port.violated
     config = lab.saved_config
     current = {"vlan": port.vlan, "enabled": port.enabled, "security": port.security,
