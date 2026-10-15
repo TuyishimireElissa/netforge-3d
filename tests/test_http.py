@@ -39,6 +39,23 @@ class BridgeHttpTests(unittest.TestCase):
         self.assertIsNone(cors)
         self.assertIn("error", body)
 
+    def test_non_ascii_token_returns_401_without_changing_state(self):
+        before = self.request("GET", "/state")[1]["state"]
+        for method, path, body in (
+            ("GET", "/state", None),
+            ("POST", "/action", json.dumps({"action": "reset"})),
+        ):
+            status, result, cors = self.request(method, path, body, token="invalid-é")
+            self.assertEqual(status, 401)
+            self.assertEqual(result, {"error": "Invalid session token"})
+            self.assertIsNone(cors)
+        self.assertEqual(self.request("GET", "/state")[1]["state"], before)
+
+    def test_session_token_configuration_validated(self):
+        for token in (None, b"bytes", "", "non-ascii-é"):
+            with self.assertRaisesRegex(ValueError, "ASCII session token"):
+                App(token)
+
     def test_socket_round_trip_and_bad_body(self):
         self.assertEqual(self.request("GET", "/state")[0], 200)
         self.assertEqual(self.request("POST", "/action", "not json")[0], 400)

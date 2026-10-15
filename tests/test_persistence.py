@@ -114,6 +114,53 @@ class PersistenceTests(unittest.TestCase):
         self.assertEqual(len(store.list_checkpoints()), MAX_CHECKPOINTS - 1)
         store.close()
 
+    def test_switch_first_cable_survives_restart_and_checkpoint(self):
+        app = App("token", self.path)
+        try:
+            self.action(app, {"action": "connect", "a": "sw1:fa0/3", "b": "pc-b:eth0"})
+            self.action(app, {"action": "ping", "source": "pc-b:eth0", "target": "pc-a:eth0"})
+            checkpoint_id = self.action(app, {"action": "checkpoint"})["result"]["checkpoint_id"]
+            self.assertTrue(app.provider.lab.assess()["mission_a"]["complete"])
+        finally:
+            app.close()
+        app = App("token", self.path)
+        try:
+            self.assertTrue(app.provider.lab.assess()["mission_a"]["complete"])
+            self.action(app, {"action": "reset"})
+            self.action(app, {"action": "restore", "checkpoint_id": checkpoint_id})
+            self.assertTrue(app.provider.lab.assess()["mission_a"]["complete"])
+        finally:
+            app.close()
+
+    def test_legacy_reversed_links_load_and_normalize(self):
+        store = SQLiteStore(self.path)
+        try:
+            lab = Lab(durable=True)
+            lab.connect("pc-b:eth0", "sw1:fa0/3")
+            store.save_active(lab)
+            checkpoint_id = store.save_checkpoint(lab)
+            # Reproduce valid v1 records written before canonical ordering.
+            with store.db:
+                store.db.execute("UPDATE links SET a=b, b=a")
+            for loaded in (store.load_active(), store.load_checkpoint(checkpoint_id)):
+                self.assertEqual({(link.a, link.b) for link in loaded.links}, {
+                    ("pc-a:eth0", "sw1:fa0/1"), ("pc-b:eth0", "sw1:fa0/3")})
+                self.assertTrue(loaded.ping("pc-b:eth0", "pc-a:eth0"))
+            self.assertEqual(store.db.execute("PRAGMA user_version").fetchone()[0], 1)
+        finally:
+            store.close()
+
+    def test_reversed_invalid_topology_still_rejected(self):
+        store = SQLiteStore(self.path)
+        try:
+            store.save_active(Lab(durable=True))
+            with store.db:
+                store.db.execute("UPDATE links SET a='sw1:fa0/3', b='pc-a:eth0'")
+            with self.assertRaisesRegex(PersistenceError, "topology"):
+                store.load_active()
+        finally:
+            store.close()
+
     def test_atomic_save_rollback_and_foreign_keys(self):
         store = SQLiteStore(self.path)
         lab = Lab(durable=True)

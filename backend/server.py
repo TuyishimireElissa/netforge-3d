@@ -18,8 +18,8 @@ from simulation.missions import MISSIONS
 
 class App:
     def __init__(self, token: str, db_path: str | Path | None = None):
-        if not token:
-            raise ValueError("A non-empty session token is required")
+        if not isinstance(token, str) or not token or not token.isascii():
+            raise ValueError("A non-empty ASCII session token is required")
         self.token = token
         self.store = SQLiteStore(db_path) if db_path is not None else None
         self.provider = BuiltinProvider(self.store)
@@ -30,7 +30,9 @@ class App:
             self.store.close()
 
     def handle(self, method: str, path: str, token: str, payload: dict | None = None) -> tuple[int, dict]:
-        if not hmac.compare_digest(token, self.token):
+        # compare_digest(str, str) raises on non-ASCII input. Malformed header
+        # values must get a normal 401 response, not terminate the HTTP worker.
+        if not isinstance(token, str) or not token.isascii() or not hmac.compare_digest(token, self.token):
             return 401, {"error": "Invalid session token"}
         with self.lock:
             if method == "GET" and path == "/state":

@@ -198,7 +198,16 @@ class SQLiteStore:
         lab.ports = ports
         lab.links = [Link(l["a"], l["b"], l["media"]) for l in self.db.execute(
             "SELECT a,b,media FROM links WHERE revision_id=? ORDER BY a,b", (rid,))]
+        # Schema v1 previously persisted either orientation from the API. Accept
+        # those valid old saves, but normalize before enforcing the topology.
+        for link in lab.links:
+            if link.a not in ports or link.b not in ports:
+                raise PersistenceError("Stored links reference unknown interfaces")
+            if ports[link.a].device == "sw1":
+                link.a, link.b = link.b, link.a
         pairs = {(l.a, l.b) for l in lab.links}
+        if len(pairs) != len(lab.links):
+            raise PersistenceError("Stored links contain duplicate cables")
         if not {("pc-a:eth0", "sw1:fa0/1")} <= pairs or not pairs <= {
                 ("pc-a:eth0", "sw1:fa0/1"), ("pc-b:eth0", "sw1:fa0/3")}:
             raise PersistenceError("Stored links do not match built-in topology")

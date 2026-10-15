@@ -89,6 +89,9 @@ class Lab:
             raise LabError("These RJ45 interfaces require copper")
         if self.link_of(a) or self.link_of(b):
             raise LabError("An interface is already occupied")
+        # Cables are undirected; keep endpoint-first ordering for stable persistence.
+        if self.ports[a].device == "sw1":
+            a, b = b, a
         self.links.append(Link(a, b, media))
         self._event(f"Copper cable connected: {a} <-> {b}")
 
