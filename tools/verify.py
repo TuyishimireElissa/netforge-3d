@@ -50,7 +50,13 @@ class Verifier:
                              "log": str(self.reports / f"{name}.log")})
         print(f"{status.upper():7} {name}: {detail}", flush=True)
         if status == "failed":
-            print("\n".join((log or detail).splitlines()[-35:]), file=sys.stderr, flush=True)
+            tail = "\n".join((log or detail).splitlines()[-35:])
+            print(tail, file=sys.stderr, flush=True)
+            if os.environ.get("GITHUB_ACTIONS") == "true":
+                # GH check annotations remain accessible if artifact/log download hosts are blocked.
+                excerpt = "\n".join(tail.splitlines()[-18:])[-2500:]
+                encoded = excerpt.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+                print(f"::error title=NetForge {name}::{encoded}", flush=True)
 
     def run(self, name: str, argv: list[str], timeout: int = 120, env: dict | None = None, reject_engine_errors: bool = False) -> bool:
         try:
