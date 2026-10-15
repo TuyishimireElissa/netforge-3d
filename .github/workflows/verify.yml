@@ -57,7 +57,9 @@ jobs:
       - name: Run Python, mission, Godot import/startup and headless integration verification
         shell: pwsh
         timeout-minutes: 12
-        run: python -m tools.verify --godot "$env:GODOT_EXE" --require-godot --report-dir artifacts/verification
+        # Windows hosted Godot 4.2.2 import exits 1 without an error; report BLOCKED only if scene and
+        # integration checks pass. Linux job below requires a clean import and full strict verification.
+        run: python -m tools.verify --godot "$env:GODOT_EXE" --require-godot --allow-windows-import-block --report-dir artifacts/verification
       - name: Retain verification logs and structured report
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
