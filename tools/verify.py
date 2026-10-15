@@ -125,7 +125,7 @@ class Verifier:
     def download_godot(self) -> Path | None:
         if sys.platform == "win32":
             archive_name = f"Godot_v{GODOT_RELEASE}_win64.exe.zip"
-            binary_name = f"Godot_v{GODOT_RELEASE}_win64.exe"
+            binary_name = f"Godot_v{GODOT_RELEASE}_win64_console.exe"
         elif sys.platform.startswith("linux") and os.uname().machine == "x86_64":
             archive_name = f"Godot_v{GODOT_RELEASE}_linux.x86_64.zip"
             binary_name = f"Godot_v{GODOT_RELEASE}_linux.x86_64"

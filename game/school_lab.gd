@@ -44,9 +44,12 @@ func _ready() -> void:
 func _box(name: String, pos: Vector3, size: Vector3, color: Color, interactive_id: String = "") -> MeshInstance3D:
 	var mesh := MeshInstance3D.new()
 	mesh.name = name
-	var shape := BoxMesh.new()
-	shape.size = size
-	mesh.mesh = shape
+	# The headless display driver has only a dummy renderer: it cannot allocate a BoxMesh RID.
+	# Keep real colliders and state/visible flags for integration tests; GUI builds create the geometry.
+	if DisplayServer.get_name() != "headless":
+		var shape := BoxMesh.new()
+		shape.size = size
+		mesh.mesh = shape
 	var material := StandardMaterial3D.new()
 	material.albedo_color = color
 	mesh.material_override = material
