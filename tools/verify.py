@@ -173,6 +173,8 @@ class Verifier:
             self.record("godot_integration", "skipped", "Executable did not start")
             return
         prefix = [str(binary.resolve()), "--headless", "--path", str(GAME)]
+        self.run("godot_script_parse", prefix + ["--check-only", "--script", "res://school_lab.gd"], 60, reject_engine_errors=True)
+        self.run("godot_smoke_parse", prefix + ["--check-only", "--script", "res://tests/smoke.gd"], 60, reject_engine_errors=True)
         self.run("godot_import", prefix + ["--verbose", "--editor", "--import"], 180, reject_engine_errors=True)
         # Startup is independent evidence; collect its diagnostics even when editor import fails.
         started = self.run("godot_startup", prefix + ["--verbose", "--quit-after", "8"], 90, reject_engine_errors=True)
