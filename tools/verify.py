@@ -57,8 +57,11 @@ class Verifier:
                 lines = (log or detail).splitlines()
                 # Include the first traceback too; unittest's final traceback may be only cleanup noise.
                 error_line = next((i for i, line in enumerate(lines) if line.startswith("ERROR:") or line.startswith("FAIL:")), 0)
-                excerpt = detail + "\n" + "\n".join(lines[error_line:error_line + 30]) + "\n--- tail ---\n" + "\n".join(lines[-12:])
-                excerpt = excerpt[:5000]
+                flagged = [line for line in lines if re.search(r"(?i)error|fail|parse|invalid|warning|script|resource", line)]
+                excerpt = (detail + "\n--- first error ---\n" + "\n".join(lines[error_line:error_line + 22]) +
+                           "\n--- flagged output ---\n" + "\n".join(flagged[-28:]) +
+                           "\n--- tail ---\n" + "\n".join(lines[-14:]))
+                excerpt = excerpt[:5500]
                 encoded = excerpt.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
                 print(f"::error title=NetForge {name}::{encoded}", flush=True)
 
@@ -170,11 +173,10 @@ class Verifier:
             self.record("godot_integration", "skipped", "Executable did not start")
             return
         prefix = [str(binary.resolve()), "--headless", "--path", str(GAME)]
-        if not self.run("godot_import", prefix + ["--verbose", "--editor", "--import"], 180, reject_engine_errors=True):
-            self.record("godot_startup", "skipped", "Project import failed")
-            self.record("godot_integration", "skipped", "Project import failed")
-            return
-        if not self.run("godot_startup", prefix + ["--quit-after", "8"], 90, reject_engine_errors=True):
+        self.run("godot_import", prefix + ["--verbose", "--editor", "--import"], 180, reject_engine_errors=True)
+        # Startup is independent evidence; collect its diagnostics even when editor import fails.
+        started = self.run("godot_startup", prefix + ["--verbose", "--quit-after", "8"], 90, reject_engine_errors=True)
+        if not started:
             self.record("godot_integration", "skipped", "Main scene startup failed")
             return
         from backend.server import App, make_handler
