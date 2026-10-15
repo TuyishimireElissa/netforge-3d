@@ -54,7 +54,11 @@ class Verifier:
             print(tail, file=sys.stderr, flush=True)
             if os.environ.get("GITHUB_ACTIONS") == "true":
                 # GH check annotations remain accessible if artifact/log download hosts are blocked.
-                excerpt = "\n".join(tail.splitlines()[-18:])[-2500:]
+                lines = (log or detail).splitlines()
+                # Include the first traceback too; unittest's final traceback may be only cleanup noise.
+                error_line = next((i for i, line in enumerate(lines) if line.startswith("ERROR:") or line.startswith("FAIL:")), 0)
+                excerpt = detail + "\n" + "\n".join(lines[error_line:error_line + 30]) + "\n--- tail ---\n" + "\n".join(lines[-12:])
+                excerpt = excerpt[:5000]
                 encoded = excerpt.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
                 print(f"::error title=NetForge {name}::{encoded}", flush=True)
 
