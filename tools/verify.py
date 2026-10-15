@@ -117,7 +117,7 @@ class Verifier:
             project = (GAME / "project.godot").read_text(encoding="utf-8")
             assert 'run/main_scene="res://school_lab.tscn"' in project
             assert '"4.2"' in project and (GAME / "school_lab.tscn").is_file()
-            assert (GAME / "tests" / "smoke.gd").is_file()
+            assert (GAME / "tests" / "smoke.gd").is_file() and (GAME / "tests" / "startup.gd").is_file()
             self.record("godot_project_config", "passed", "Main scene, Godot 4.2 feature and smoke script are present (not an import)")
         except Exception as exc:
             self.record("godot_project_config", "failed", f"{type(exc).__name__}: {exc}")
@@ -175,9 +175,10 @@ class Verifier:
         prefix = [str(binary.resolve()), "--headless", "--path", str(GAME)]
         self.run("godot_script_parse", prefix + ["--check-only", "--script", "res://school_lab.gd"], 60, reject_engine_errors=True)
         self.run("godot_smoke_parse", prefix + ["--check-only", "--script", "res://tests/smoke.gd"], 60, reject_engine_errors=True)
+        self.run("godot_startup_parse", prefix + ["--check-only", "--script", "res://tests/startup.gd"], 60, reject_engine_errors=True)
         self.run("godot_import", prefix + ["--verbose", "--editor", "--import"], 180, reject_engine_errors=True)
         # Startup is independent evidence; collect its diagnostics even when editor import fails.
-        self.run("godot_startup", prefix + ["--verbose", "--quit-after", "8"], 90, reject_engine_errors=True)
+        self.run("godot_startup", prefix + ["--script", "res://tests/startup.gd"], 90, reject_engine_errors=True)
         # Integration collects independent parser/scene diagnostics even when startup fails.
         from backend.server import App, make_handler
         with tempfile.TemporaryDirectory(prefix="netforge-smoke-", dir=self.reports) as scratch:
