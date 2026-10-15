@@ -177,10 +177,8 @@ class Verifier:
         self.run("godot_smoke_parse", prefix + ["--check-only", "--script", "res://tests/smoke.gd"], 60, reject_engine_errors=True)
         self.run("godot_import", prefix + ["--verbose", "--editor", "--import"], 180, reject_engine_errors=True)
         # Startup is independent evidence; collect its diagnostics even when editor import fails.
-        started = self.run("godot_startup", prefix + ["--verbose", "--quit-after", "8"], 90, reject_engine_errors=True)
-        if not started:
-            self.record("godot_integration", "skipped", "Main scene startup failed")
-            return
+        self.run("godot_startup", prefix + ["--verbose", "--quit-after", "8"], 90, reject_engine_errors=True)
+        # Integration collects independent parser/scene diagnostics even when startup fails.
         from backend.server import App, make_handler
         with tempfile.TemporaryDirectory(prefix="netforge-smoke-", dir=self.reports) as scratch:
             token = "local-test-only-godot-token"
