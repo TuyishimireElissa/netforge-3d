@@ -18,6 +18,7 @@ var ip_input: LineEdit
 var pc_select: OptionButton
 var checkpoint_select: OptionButton
 var delete_dialog: ConfirmationDialog
+var reset_dialog: ConfirmationDialog
 var pending_delete_id := 0
 var hud_scroll: ScrollContainer
 var inspected_id := ""
@@ -178,7 +179,12 @@ func _build_ui() -> void:
 	delete_dialog.title = "Delete simulated checkpoint?"
 	delete_dialog.confirmed.connect(_delete_checkpoint)
 	ui.add_child(delete_dialog)
-	_button(layout, "Reset active lab (saved checkpoints remain)", func(): cable_selected = false; cable_port = ""; _action({"action":"reset"}))
+	_button(layout, "Reset active lab (confirmation required)", _ask_reset)
+	reset_dialog = ConfirmationDialog.new()
+	reset_dialog.title = "Reset active simulated lab?"
+	reset_dialog.dialog_text = "Clear active cables, configuration and mission progress? Saved checkpoints remain available."
+	reset_dialog.confirmed.connect(_reset_lab)
+	ui.add_child(reset_dialog)
 	var ip_label := Label.new()
 	ip_label.text = "Endpoint IPv4/CIDR (simulated, e.g. 192.168.10.11/24)"
 	layout.add_child(ip_label)
@@ -220,6 +226,16 @@ func _resize_hud() -> void:
 		return
 	var view := get_viewport().get_visible_rect().size
 	hud_scroll.size = Vector2(min(450.0, max(280.0, view.x - 24.0)), max(180.0, view.y - 24.0))
+
+func _ask_reset() -> void:
+	_capture(false)
+	reset_dialog.popup_centered()
+
+func _reset_lab() -> void:
+	cable_selected = false
+	cable_port = ""
+	inspected_id = ""
+	_action({"action":"reset"})
 
 func _configure_ip() -> void:
 	var cidr := ip_input.text.strip_edges()

@@ -26,3 +26,4 @@
 - Prevented rejected ping requests from erasing prior mission evidence; rejected non-string browser action names; added regression tests.
 - Added repeatable PowerShell/Bash bridge and verification wrappers, packaged the browser companion static assets in the Python wheel, tested that installed copy serves the UI, and extended verification to inspect untracked source whitespace and optional GDScript grammar (gdtoolkit 4.2.2).
 - Added prioritized readiness checklist, refreshed setup/architecture/limitations/roadmap and documented local versus remote Git history and blocked engine checks.
+- Added confirmation before resetting the active desktop simulated lab; the saved checkpoints remain available. Headless signal-path assertion added (pending exact-revision hosted check at authoring time).

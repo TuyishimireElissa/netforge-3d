@@ -100,7 +100,9 @@ func run_checks() -> void:
 	check(not lab.state["checkpoints"].is_empty(), "checkpoint control persisted state")
 	var id = lab.state["checkpoints"][0]["id"]
 	check(lab._selected_checkpoint_id() == id, "checkpoint selector reflects backend metadata")
-	await action({"action":"reset"})
+	check(lab.reset_dialog != null, "reset confirmation dialog exists")
+	lab.reset_dialog.confirmed.emit()
+	await lab.http.request_completed
 	check(not lab.state["ports"]["pc-b:eth0"]["linked"] and not lab.repair_visual.visible,
 		"reset clears cable both logically and visually")
 	await action({"action":"restore", "checkpoint_id":id})
