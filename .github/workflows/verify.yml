@@ -1,0 +1,119 @@
+name: Verify NetForge 3D
+
+on:
+  push:
+    branches: [main, 'arena/**']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: netforge-verify-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows-verification:
+    name: Python and Godot 4.2.2 (Windows)
+    runs-on: windows-2022
+    timeout-minutes: 25
+    steps:
+      - name: Checkout tested revision
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Set up Python 3.11.9
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: '3.11.9'
+      - name: Install project from pyproject.toml (no runtime extras)
+        shell: pwsh
+        run: python -m pip install --disable-pip-version-check --no-deps .
+      - name: Download pinned official Godot build and verify SHA512
+        shell: pwsh
+        timeout-minutes: 8
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $version = '4.2.2-stable'
+          $base = "https://github.com/godotengine/godot-builds/releases/download/$version"
+          $filename = "Godot_v${version}_win64.exe.zip"
+          $archive = Join-Path $env:RUNNER_TEMP $filename
+          $sums = Join-Path $env:RUNNER_TEMP 'SHA512-SUMS.txt'
+          Invoke-WebRequest -Uri "$base/$filename" -OutFile $archive
+          Invoke-WebRequest -Uri "$base/SHA512-SUMS.txt" -OutFile $sums
+          $line = Get-Content $sums | Where-Object { $_ -match ([regex]::Escape($filename) + '$') } | Select-Object -First 1
+          if (-not $line) { throw "Missing SHA512 checksum for $filename" }
+          $expected = ($line.Trim() -split '\s+')[0].ToLowerInvariant()
+          $actual = (Get-FileHash $archive -Algorithm SHA512).Hash.ToLowerInvariant()
+          if ($actual -ne $expected) { throw "Godot archive SHA512 mismatch" }
+          $destination = Join-Path $env:RUNNER_TEMP 'netforge-godot'
+          Expand-Archive -Path $archive -DestinationPath $destination
+          $binary = Join-Path $destination "Godot_v${version}_win64_console.exe"
+          if (-not (Test-Path $binary)) { throw "Godot console executable missing in official archive" }
+          "GODOT_EXE=$binary" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      - name: Run Python, mission, Godot import/startup and headless integration verification
+        shell: pwsh
+        timeout-minutes: 12
+        # Windows hosted Godot 4.2.2 import exits 1 without an error; report BLOCKED only if scene and
+        # integration checks pass. Linux job below requires a clean import and full strict verification.
+        run: python -m tools.verify --godot "$env:GODOT_EXE" --require-godot --allow-windows-import-block --report-dir artifacts/verification
+      - name: Retain verification logs and structured report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: verification-windows-${{ github.run_id }}
+          path: artifacts/verification/
+          if-no-files-found: warn
+          retention-days: 14
+
+  linux-headless:
+    name: Python and Godot 4.2.2 (Linux headless)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout tested revision
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Set up Python 3.11.9
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: '3.11.9'
+      - name: Install project from pyproject.toml
+        run: python -m pip install --disable-pip-version-check --no-deps .
+      - name: Download and verify official Godot 4.2.2 Linux build
+        shell: bash
+        timeout-minutes: 8
+        run: |
+          set -euo pipefail
+          base='https://github.com/godotengine/godot-builds/releases/download/4.2.2-stable'
+          archive='Godot_v4.2.2-stable_linux.x86_64.zip'
+          curl --fail --location --retry 3 "$base/$archive" --output "$RUNNER_TEMP/$archive"
+          curl --fail --location --retry 3 "$base/SHA512-SUMS.txt" --output "$RUNNER_TEMP/SHA512-SUMS.txt"
+          python - "$RUNNER_TEMP/$archive" "$RUNNER_TEMP/SHA512-SUMS.txt" <<'PY'
+          import hashlib, pathlib, sys
+          archive, sums = map(pathlib.Path, sys.argv[1:])
+          matched = [line.split()[0] for line in sums.read_text().splitlines() if line.rstrip().endswith(archive.name)]
+          if len(matched) != 1 or hashlib.sha512(archive.read_bytes()).hexdigest().lower() != matched[0].lower():
+              raise SystemExit('Godot release archive checksum mismatch')
+          PY
+          mkdir -p "$RUNNER_TEMP/netforge-godot"
+          unzip -q "$RUNNER_TEMP/$archive" -d "$RUNNER_TEMP/netforge-godot"
+          binary="$RUNNER_TEMP/netforge-godot/Godot_v4.2.2-stable_linux.x86_64"
+          chmod +x "$binary"
+          echo "GODOT_EXE=$binary" >> "$GITHUB_ENV"
+      - name: Run strict Python, Godot import/startup and integration verification
+        timeout-minutes: 10
+        run: python -m tools.verify --godot "$GODOT_EXE" --require-godot --report-dir artifacts/verification
+      - name: Retain Linux verification diagnostics
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: verification-linux-${{ github.run_id }}
+          path: artifacts/verification/
+          if-no-files-found: warn
+          retention-days: 14

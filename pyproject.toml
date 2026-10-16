@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools==75.8.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "netforge-3d"
+version = "0.1.0"
+description = "Offline simulated networking lab and Godot 3D client"
+requires-python = ">=3.11"
+# First slice deliberately has no third-party Python dependencies.
+
+[tool.setuptools.packages.find]
+include = ["simulation*", "providers*", "backend*", "database*", "scenarios*", "tools*", "web_preview*"]
+
+[tool.setuptools.package-data]
+scenarios = ["*.json"]
+web_preview = ["*.html", "*.css", "*.js"]
