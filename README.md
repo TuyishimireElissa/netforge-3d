@@ -1,1 +1,37 @@
-# netforge-3d
+# NetForge 3D (prototype)
+
+An offline-first **SIMULATED** school networking lab with optional local SQLite persistence. The headless Python simulation models an Ethernet switch, two hosts, a cable repair, same-subnet ARP/ICMP exchange and a limited vendor-inspired switch CLI. A Godot 4 desktop scene provides first-person inspection, virtual cable repair, terminal and mission feedback. **Godot has not been run inside this sandbox.** Hosted Linux and Windows jobs have run headless engine tests; rendered GUI interaction is still unverified. No real packet capture, operating-system networking, appliance emulation or isolated attack range is included.
+
+## Quick start
+
+Requires Python 3.11+ (standard library only); optional Godot 4.2+ for the 3D scene.
+
+```sh
+python -m tools.verify                 # tests/config checks + report; Godot unavailable is BLOCKED
+python -m unittest discover -s tests -v
+python -m tools.console                 # fully headless interactive lab
+python -m backend.server               # local API + SQLite (~/.netforge-3d/labs.sqlite3); prints token
+python -m backend.preview --port 8000  # optional shared SIMULATED browser companion (not Godot)
+```
+
+In Godot, import `game/project.godot`, run the project, paste the printed local session token and click **Connect to local simulator**. The bridge runs on `127.0.0.1:8765`; never use it as a remote or Internet-facing service. `--ephemeral` disables SQLite; `--db PATH` selects a local file. The Godot panel can save and restore up to 20 explicit checkpoints. Scenario A/B JSON now drives weighted, evidence-based grading (not actual network tests). On Windows use `py -3 -m ...` if `python` is unavailable. See [development setup](docs/DEVELOPMENT_SETUP.md), [user guide](docs/USER_GUIDE.md) and [limitations](docs/KNOWN_LIMITATIONS.md).
+
+## Structure
+
+- `simulation/`: deterministic model, validated mission rubrics and switch CLI, independent of engine/UI.
+- `providers/`: capability declaration and built-in simulated provider; real providers not implemented.
+- `backend/`: token-protected loopback JSON bridge and separate allowlisted ephemeral browser companion server (Python standard library).
+- `web_preview/`: simulated lab topology/control UI; not a Godot export.
+- `database/`: SQLite v1 migration, normalized state and checkpoints.
+- `game/`: Godot 4 scene and modularization starting point.
+- `scenarios/`: validated executable rubrics for the first two machine-readable missions.
+- `tests/`: Python unit and API dispatcher tests.
+- `docs/`: scope, architecture, inventories, fidelity, risks, backlog and setup.
+- `scripts/`: repeatable local verification/desktop-bridge launch wrappers (Windows PowerShell and Bash).
+- `tools/`: safe headless manual console; `integrations/`, `database/`, `assets/`: future module boundaries.
+
+**Browser companion preview (simulated, not Godot 3D):** `python -m backend.preview --port 8000`, then visit the preview URL shown by your sandbox or `http://localhost:8000` when running locally. Repair the cable by selecting it, PC B and SW1, run the simulated ping, and use the switch CLI. State is shared between viewers, in memory only, and resets on server exit. It has no real host/network tool access; do not deploy as a production Internet service. The desktop bridge remains separate and loopback-only. No web export of Godot or rendered 3D preview has been verified.
+
+Verification: `python -m tools.verify --download-godot --require-godot` attempts official Godot 4.2.2 and requires its headless import/startup/mission tests; logs and JSON report are in `artifacts/verification/`. GitHub Actions runs pinned Windows and Linux jobs. [Run 38756303805](https://github.com/TuyishimireElissa/netforge-3d/actions/runs/38756303805) passed: Linux editor import/startup/integration passed; Windows scene/mission scripting passed but its headless editor import is **BLOCKED** (engine exits 1 without an error). A passing headless test is not full graphical usability proof.
+
+**Readiness status (2026-10-16):** The desktop scene now exposes weighted rubric feedback, PC IPv4 configuration and checkpoint selection/deletion. Hosted headless Godot integration ran on this revision, but this sandbox has no compatible executable and no rendered GUI has been verified. Python tests and an optional GDScript grammar check are not substitutes for engine import/graphical validation. See [implementation checklist](docs/IMPLEMENTATION_CHECKLIST.md), [development handover](docs/AI_HANDOVER.md) and [test evidence](docs/TEST_PLAN.md). The current branch is published to PR #1. Hosted Linux strict Godot 4.2.2 import/startup/integration and Windows scene/integration jobs passed for the latest scene changes at `cef17c6` in runs 38926182623 and 38926194671; Windows headless editor import remains explicitly BLOCKED. No rendered GUI or Windows 10/8 GB usability test has run.

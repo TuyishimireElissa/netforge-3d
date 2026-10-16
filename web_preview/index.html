@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>NetForge · School Lab Preview</title>
+  <link rel="stylesheet" href="/style.css">
+  <script defer src="/app.js"></script>
+</head>
+<body>
+<div class="shell">
+  <header class="topbar">
+    <div class="brand"><span class="mark">N<span>F</span></span><span><strong>NETFORGE</strong><small>NETWORK LAB / PREVIEW</small></span></div>
+    <div class="top-right"><span class="live"><i></i> SIMULATOR ONLINE</span><span class="build">SCHOOL LAB · 01</span></div>
+  </header>
+  <main>
+    <div class="headline"><div class="eyebrow">INTERACTIVE LAB / 001</div><h1>Repair the link.<br><em>Secure the port.</em></h1><p>Explore a small school network. Connect the missing copper cable, verify connectivity, then configure sticky MAC learning on the switch.</p></div>
+    <div class="notice"><span class="notice-icon">◇</span><span><strong>Browser companion — not the Godot 3D game.</strong> This preview drives the real NetForge <b>simulated</b> Python model. No host networking commands, packet captures or real cyber tools run here. State is shared and resets when the server stops.</span></div>
+    <div class="workspace">
+      <section class="scene panel" aria-label="Interactive school lab topology">
+        <div class="panel-heading"><span>LAB FLOOR <span class="muted">/ TOPOLOGY VIEW</span></span><span class="chip">SIMULATED</span></div>
+        <div class="scene-stage">
+          <div class="ambient-glow"></div><div class="grid-floor"></div>
+          <div class="stage-top"><span class="tiny-label">ROOM 01 — SCHOOL NETWORKING LAB</span><span class="tiny-label">192.168.10.0 / 24</span></div>
+          <svg class="wires" viewBox="0 0 900 520" preserveAspectRatio="none" aria-hidden="true"><path id="wire-a" d="M 242 286 C 327 344, 342 344, 450 308"/><path id="wire-b" d="M 650 300 C 588 352, 570 350, 475 308"/></svg>
+          <button class="device pc pc-a" data-device="pc-a" aria-label="Inspect PC A">
+            <span class="screen"><span class="screen-lines"><i></i><i></i><i></i></span><span class="screen-dot"></span></span><span class="stand"></span>
+            <span class="device-caption"><b>PC A</b><small>192.168.10.10</small></span>
+          </button>
+          <button class="device pc pc-b" data-device="pc-b" aria-label="Select or inspect PC B">
+            <span class="screen"><span class="screen-lines"><i></i><i></i><i></i></span><span class="screen-dot"></span></span><span class="stand"></span>
+            <span class="device-caption"><b>PC B</b><small>192.168.10.11</small></span>
+          </button>
+          <button class="device switch" data-device="sw1" aria-label="Inspect managed switch"><span class="switch-lights"><i></i><i></i><i></i><i></i></span><span class="switch-ports"><span>01</span><span>02</span><span id="port03">03</span><span>04</span></span><span class="device-caption"><b>SW1</b><small>MANAGED SWITCH</small></span></button>
+          <button class="loose-cable" id="cable" aria-label="Pick up copper Ethernet cable"><span class="coil"></span><span>CAT5e COPPER<br><small>CLICK TO PICK UP</small></span></button>
+          <div class="floor-caption"><span><i class="legend-line live-line"></i> ACTIVE LINK</span><span><i class="legend-line absent-line"></i> DISCONNECTED</span></div>
+        </div>
+        <div class="scene-footer"><span id="selection-hint">Click the loose cable, PC B, then switch port 03 to repair the link.</span><span id="link-state" class="state-pill">PC B DISCONNECTED</span></div>
+      </section>
+      <aside class="sidebar">
+        <section class="panel missions"><div class="panel-heading"><span>MISSION CONTROL</span><span class="muted">01 / 02</span></div>
+          <div class="mission" id="mission-a"><span class="mission-number">01</span><div><h2>Restore connectivity</h2><p>Repair PC B’s Ethernet link and prove a successful simulated ping.</p><div class="progress"><i></i></div><small class="mission-score">0 / 2 CRITERIA</small></div><span class="mission-icon">○</span></div>
+          <div class="mission" id="mission-b"><span class="mission-number">02</span><div><h2>Secure the switch port</h2><p>Enable port security, learn PC B’s MAC, save the config and verify traffic.</p><div class="progress"><i></i></div><small class="mission-score">0 / 5 POINTS</small></div><span class="mission-icon">○</span></div>
+        </section>
+        <section class="panel controls"><div class="panel-heading">ACTIONS <span class="muted">/ LAB CONTROL</span></div><div class="buttons"><button id="ping" class="action primary">↗ &nbsp; PING PC A FROM PC B</button><button id="disconnect" class="action">⌁ &nbsp; DISCONNECT CABLE</button><button id="assess" class="action">◇ &nbsp; ASSESS MISSIONS</button><button id="reset" class="action danger">↺ &nbsp; RESET LAB</button></div></section>
+        <section class="panel inspection"><div class="panel-heading">EQUIPMENT STATUS</div><div id="inspection-content" class="inspection-content">Select a device in the lab to inspect its modeled interface state.</div></section>
+      </aside>
+    </div>
+    <div class="lower">
+      <section class="panel terminal"><div class="panel-heading"><span>SW1 <span class="muted">/ SIMULATED SWITCH CLI</span></span><span id="cli-mode" class="chip">USER MODE</span></div><div class="term-body"><div class="term-title">NetForge SwitchOS subset <span>· not Cisco IOS</span></div><div id="terminal-history" class="terminal-history" aria-live="polite"><div class="term-muted">Try: enable → configure terminal → interface fastethernet 0/3</div></div><form id="cli-form" autocomplete="off"><span class="term-prompt">sw1&gt;</span><input id="cli-input" type="text" maxlength="160" spellcheck="false" autocomplete="off" aria-label="Simulated switch CLI command" placeholder="Enter a switch command…"><button type="submit">RUN ↵</button></form></div></section>
+      <section class="panel trace"><div class="panel-heading"><span>PACKET JOURNAL <span class="muted">/ MODELED DECISIONS</span></span><span class="chip neutral">NOT A PCAP</span></div><div id="trace-content" class="trace-content"><div class="empty-trace">No traffic yet. Repair the link and run a ping to see forwarding decisions.</div></div></section>
+    </div>
+  </main>
+  <footer>NETFORGE 3D <span>·</span> BROWSER COMPANION <span>·</span> SIMULATED FIDELITY ONLY</footer>
+</div>
+</body>
+</html>
